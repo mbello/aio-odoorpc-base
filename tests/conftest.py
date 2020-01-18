@@ -65,6 +65,11 @@ def aio_benchmark(benchmark):
             if evloop is None:
                 return asyncio.run(awaitable)
             else:
+                from concurrent.futures import ThreadPoolExecutor
+                with ThreadPoolExecutor(max_workers=1) as executor:
+                    evloop.run_in_executor(executor, self.coro, *self.args)
+                
+                return
                 if not self.custom_loop or not self.thread or not self.thread.is_alive():
                     self.custom_loop = asyncio.new_event_loop()
                     self.thread = threading.Thread(target=self.start_background_loop, daemon=True)
