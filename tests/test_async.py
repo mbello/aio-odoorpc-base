@@ -27,7 +27,7 @@ async def test_async_httpx2(url_db_user_pwd: list, aio_benchmark):
 async def test_async_aiohttp(url_db_user_pwd: list):
     url, db, user, pwd = url_db_user_pwd
     async with aiohttp.ClientSession() as session:
-        async_login_search_read(url, db, user, pwd, session)
+        await async_login_search_read(url, db, user, pwd, session)
 
 
 async def async_login_search_read(url: str, db: str, user: str, pwd: str, session: T_AsyncHttpClient):
