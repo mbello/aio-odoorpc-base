@@ -1,14 +1,14 @@
-from typing import Any, Mapping, Optional, Sequence, Tuple
+from typing import Any, Mapping, Optional, Sequence, Tuple, Union
 import random
-from aio_odoorpc_base.protocols import ProtoHttpClient, ProtoResponse
-# from asyncio import iscoroutine
+from aio_odoorpc_base.protocols import T_HttpClient, T_Response
 
 
-def jsonrpc(http_client: ProtoHttpClient, *,
+def jsonrpc(http_client: T_HttpClient,
+            url: str = '', *,
             service: str,
             method: str,
             args: Optional[Sequence] = None,
-            kwargs: Optional[Mapping] = None) -> Tuple[ProtoResponse, int]:
+            kwargs: Optional[Mapping] = None) -> Tuple[T_Response, int]:
 
     json_payload = {'jsonrpc': '2.0',
                     'method': 'call',
@@ -23,14 +23,21 @@ def jsonrpc(http_client: ProtoHttpClient, *,
     if kwargs is None:
         del json_payload['params']['kwargs']
 
-    return http_client.post('', json=json_payload), json_payload['id']
+    if callable(http_client):
+        return http_client(json_payload)
+    else:
+        assert isinstance(json_payload, dict)
+        print(json_payload)
+        resp = http_client.post(url, json=json_payload)
+        return resp, json_payload['id']
 
 
-def check_jsonrpc_response(resp: ProtoResponse,
+def check_jsonrpc_response(resp: T_Response,
                            req_id: int,
                            ensure_instance_of: Optional[type] = None) -> Mapping:
 
     data = resp.json()
+
     assert data.get(
         'id') == req_id, "[aio-odoorpc-base] Somehow the response id differs from the request id."
 
@@ -47,18 +54,22 @@ def check_jsonrpc_response(resp: ProtoResponse,
         return data
 
 
-def login(http_client: ProtoHttpClient, *,
+def login(http_client: T_HttpClient,
+          url: str = '', *,
           database: str,
           username: str,
           password: str) -> int:
-    resp, req_id = jsonrpc(http_client=http_client,
+
+    resp, req_id = jsonrpc(http_client, url,
                            service='common',
                            method='login',
                            args=[database, username, password])
-    return (check_jsonrpc_response(resp, req_id, ensure_instance_of=int))['result']
+    data = check_jsonrpc_response(resp, req_id, ensure_instance_of=int)
+    return data['result']
 
 
-def execute_kw(http_client: ProtoHttpClient, *,
+def execute_kw(http_client: T_HttpClient,
+               url: str = '', *,
                database: str,
                uid: int,
                password: str,
@@ -73,8 +84,9 @@ def execute_kw(http_client: ProtoHttpClient, *,
     if kwargs is None:
         del args[-1]
 
-    resp, req_id = jsonrpc(http_client=http_client,
+    resp, req_id = jsonrpc(http_client, url,
                            service='object',
                            method='execute_kw',
                            args=args)
-    return (check_jsonrpc_response(resp, req_id))['result']
+    data = check_jsonrpc_response(resp, req_id)
+    return data['result']

@@ -1,4 +1,4 @@
-from typing import Protocol, Mapping
+from typing import Awaitable, Callable, Mapping, Protocol, Union
 
 
 class ProtoAsyncResponse(Protocol):
@@ -19,3 +19,9 @@ class ProtoAsyncHttpClient(Protocol):
 class ProtoHttpClient(Protocol):
     def post(self, json: Mapping) -> ProtoResponse:
         ...
+
+
+T_AsyncResponse = Union[ProtoResponse, ProtoAsyncResponse]
+T_AsyncHttpClient = Union[Callable[[Mapping], Awaitable[T_AsyncResponse]], ProtoAsyncHttpClient]
+T_Response = ProtoResponse
+T_HttpClient = Union[Callable[[Mapping], ProtoResponse], ProtoHttpClient]

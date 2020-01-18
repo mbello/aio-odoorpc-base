@@ -43,6 +43,17 @@ def build_odoo_base_url(*,
 
 
 def odoo_base_url2jsonrpc_endpoint(odoo_base_url: str = '', custom_odoo_jsonrpc_suffix: Optional[str] = None) -> str:
+    if custom_odoo_jsonrpc_suffix is not None and custom_odoo_jsonrpc_suffix.startswith('/'):
+        return odoo_base_url2jsonrpc_endpoint(odoo_base_url=odoo_base_url,
+                                              custom_odoo_jsonrpc_suffix=custom_odoo_jsonrpc_suffix[1:])
+    if custom_odoo_jsonrpc_suffix is not None and custom_odoo_jsonrpc_suffix.endswith('/'):
+        return odoo_base_url2jsonrpc_endpoint(odoo_base_url=odoo_base_url,
+                                              custom_odoo_jsonrpc_suffix=custom_odoo_jsonrpc_suffix[:-1])
+    
+    if odoo_base_url and odoo_base_url.endswith('/'):
+        return odoo_base_url2jsonrpc_endpoint(odoo_base_url=odoo_base_url[:-1],
+                                              custom_odoo_jsonrpc_suffix=custom_odoo_jsonrpc_suffix)
+    
     sep = '/' if odoo_base_url and not odoo_base_url.endswith('/') else ''
     suffix = 'jsonrpc' if custom_odoo_jsonrpc_suffix is None else custom_odoo_jsonrpc_suffix
     return f'{odoo_base_url}{sep}{suffix}'

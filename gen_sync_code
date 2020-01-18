@@ -5,35 +5,53 @@ import os
 
 files = [('aio_odoorpc_base/aio_jsonrpc.py', 'aio_odoorpc_base/jsonrpc.py')]
 
-repl = [('await resp.json() if iscoroutine(resp.json) else ', ''),
-        ('from asyncio import iscoroutine', '# from asyncio import iscoroutine'),
-        ('import ProtoAsyncHttpClient, ProtoAsyncResponse, ', 'import ProtoHttpClient, '),
-        ('ProtoResponse or ProtoAsyncResponse', 'ProtoResponse'),
+delete_lines = ['from inspect import isawaitable',
+                'if isawaitable(data):',
+                'data = await data']
+
+comment_lines = []
+
+repl = [('T_AsyncResponse', 'T_Response'),
+        ('T_AsyncHttpClient', 'T_HttpClient'),
         ('async def', 'def'),
         ('await ', ''),
-        ('async with ', 'with '),
-        ('AsyncHttpClient', 'HttpClient'),
         ('aio_', ''),
         ('odoorpc_base', 'aio_odoorpc_base')]
 
 
-def convert_async_to_sync(filename_async: str, filename_sync: str, repl: List[Tuple]):
+def convert_async_to_sync(filename_async: str, filename_sync: str, repl: List[Tuple], delete_lines: List[str]):
     dt_mod_async = os.path.getmtime(filename_async)
+    dt_mod_script = os.path.getmtime(__file__)
     try:
         dt_mod_sync = os.path.getmtime(filename_sync)
     except:
         dt_mod_sync = 0
     
-    if dt_mod_async < dt_mod_sync:
+    if dt_mod_async < dt_mod_sync and dt_mod_script < dt_mod_sync:
         return
     
-    with open(filename_async, 'r') as f:
-        f_async = f.read()
+    lines = []
+    with open(filename_async, 'r') as file:
+        for line in file:
+            line_s = line.strip()
+            keep = True
+            for t in delete_lines:
+                if t == line_s:
+                    print(f'Deleted line: {t}')
+                    keep = False
+                    break
+            if keep:
+                lines.append(line)
     
+    f_async = ''.join(lines)
     f_sync = f_async
 
     for t in repl:
-        f_sync = f_sync.replace(t[0], t[1])
+        index = f_sync.find(t[0])
+        if index >= 0:
+            f_sync = f_sync.replace(t[0], t[1])
+        else:
+            print(f'No match for rule: {t[0]} -> {t[1]}')
 
     with open(filename_sync, 'w') as f:
         f.write(f_sync)
@@ -42,4 +60,4 @@ def convert_async_to_sync(filename_async: str, filename_sync: str, repl: List[Tu
 
 
 for f in files:
-    convert_async_to_sync(f[0], f[1], repl)
+    convert_async_to_sync(f[0], f[1], repl, delete_lines)

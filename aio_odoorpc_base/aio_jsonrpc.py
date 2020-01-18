@@ -1,14 +1,15 @@
-from typing import Any, Mapping, Optional, Sequence, Tuple
+from typing import Any, Mapping, Optional, Sequence, Tuple, Union
 import random
-from aio_odoorpc_base.protocols import ProtoAsyncHttpClient, ProtoAsyncResponse, ProtoResponse
-from asyncio import iscoroutine
+from aio_odoorpc_base.protocols import T_AsyncHttpClient, T_AsyncResponse
+from inspect import isawaitable
 
 
-async def aio_jsonrpc(http_client: ProtoAsyncHttpClient, *,
+async def aio_jsonrpc(http_client: T_AsyncHttpClient,
+                      url: str = '', *,
                       service: str,
                       method: str,
                       args: Optional[Sequence] = None,
-                      kwargs: Optional[Mapping] = None) -> Tuple[ProtoResponse or ProtoAsyncResponse, int]:
+                      kwargs: Optional[Mapping] = None) -> Tuple[T_AsyncResponse, int]:
     
     json_payload = {'jsonrpc': '2.0',
                     'method': 'call',
@@ -22,15 +23,24 @@ async def aio_jsonrpc(http_client: ProtoAsyncHttpClient, *,
         del json_payload['params']['args']
     if kwargs is None:
         del json_payload['params']['kwargs']
-        
-    return await http_client.post('', json=json_payload), json_payload['id']
+    
+    if callable(http_client):
+        return await http_client(json_payload)
+    else:
+        assert isinstance(json_payload, dict)
+        print(json_payload)
+        resp = await http_client.post(url, json=json_payload)
+        return resp, json_payload['id']
 
 
-async def aio_check_jsonrpc_response(resp: ProtoResponse or ProtoAsyncResponse,
+async def aio_check_jsonrpc_response(resp: T_AsyncResponse,
                                      req_id: int,
                                      ensure_instance_of: Optional[type] = None) -> Mapping:
     
-    data = await resp.json() if iscoroutine(resp.json) else resp.json()
+    data = resp.json()
+    if isawaitable(data):
+        data = await data
+    
     assert data.get('id') == req_id, "[aio-odoorpc-base] Somehow the response id differs from the request id."
     
     if data.get('error'):
@@ -46,18 +56,22 @@ async def aio_check_jsonrpc_response(resp: ProtoResponse or ProtoAsyncResponse,
         return data
 
 
-async def aio_login(http_client: ProtoAsyncHttpClient, *,
+async def aio_login(http_client: T_AsyncHttpClient,
+                    url: str = '', *,
                     database: str,
                     username: str,
                     password: str) -> int:
-    resp, req_id = await aio_jsonrpc(http_client=http_client,
+    
+    resp, req_id = await aio_jsonrpc(http_client, url,
                                      service='common',
                                      method='login',
                                      args=[database, username, password])
-    return (await aio_check_jsonrpc_response(resp, req_id, ensure_instance_of=int))['result']
+    data = await aio_check_jsonrpc_response(resp, req_id, ensure_instance_of=int)
+    return data['result']
 
 
-async def aio_execute_kw(http_client: ProtoAsyncHttpClient, *,
+async def aio_execute_kw(http_client: T_AsyncHttpClient,
+                         url: str = '', *,
                          database: str,
                          uid: int,
                          password: str,
@@ -71,8 +85,9 @@ async def aio_execute_kw(http_client: ProtoAsyncHttpClient, *,
     if kwargs is None:
         del args[-1]
     
-    resp, req_id = await aio_jsonrpc(http_client=http_client,
+    resp, req_id = await aio_jsonrpc(http_client, url,
                                      service='object',
                                      method='execute_kw',
                                      args=args)
-    return (await aio_check_jsonrpc_response(resp, req_id))['result']
+    data = await aio_check_jsonrpc_response(resp, req_id)
+    return data['result']

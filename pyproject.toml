@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "aio-odoorpc-base"
 description = "Fast, simple Odoo RPC package with sync and async functions to pilot Odoo's jsonrpc API. Check aio-odoorpc for a higher-level, friendlier interface."
-version = "0.1.0"
+version = "1.0.4"
 license = "CC0-1.0"
 authors = ["mbello <mbello@users.noreply.github.com>"]
 repository = "https://github.com/mbello/aio-odoorpc-base"
@@ -18,6 +18,9 @@ httpx = "^0.11.0"
 requests = "^2.22.0"
 aiohttp = "^3.6.2"
 beautifulsoup4 = "^4.8.2"
+pytest-asyncio = "^0.10.0"
+pytest-benchmark = "^3.2.3"
+pytest-xdist = "^1.31.0"
 
 [build-system]
 requires = ["poetry>=0.12"]

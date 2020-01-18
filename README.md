@@ -3,12 +3,8 @@
 ---
 #### Note:
 
-A higher-level, friendler interface is provided by aio-odoorpc, make sure to check that out
+A higher-level, friendlier interface is provided by aio-odoorpc, make sure to check that out
 as well.
-
-This is a fast, simple Odoo RPC client that offers two versions of the same API:
-1. AsyncOdooRPC: asynchronous version;
-2. OdooRPC: the 'normal', synchronous version.
 
 ---
 
@@ -37,8 +33,9 @@ good reason.
 
 This also means that you are free to use whatever HTTP Client library you like. This package only
 requires that:
-1. The http_client must support a '.post(json=a_dict)' method that should be happy with a single
-   'json' named argument. All headers, etc must be managed by you;
+1. The http_client must support a '.post(url, json=a_dict)' method. All headers, etc must be
+   managed by you. Alternatively, a callable can be passed on in place of the http client, in which
+   case it will be called with a single argument: the json payload;
 2. The 'post' method mentioned above must return a response object that must have a '.json()'
    method. This method may be synchronous or asynchronous (when using the async functions).
    It must return a dict or dict-like object. This interface is supported by packages such
@@ -56,9 +53,10 @@ library and here you have the opportunity to use it.
 Remember that you must use an async http client library if you are going to use the async functions,
 or use a synchronous http client library if you are going to use the sync function.
 
-- sync-only http client options: 'requests'
-- async-only http client options: 'aiohttp'
-- sync and async http client options: 'httpx'
+#####Python HTTP Client packages known to be compatible:
+- sync-only: 'requests'
+- async-only: 'aiohttp'
+- sync and async: 'httpx'
 
 ### Motivation:
 As I gained experience producing code to interface with Odoo's RPC API, I felt that it was better to control myself
@@ -71,11 +69,11 @@ Also, if you want fast code you quickly start missing an async interface. So her
 
 ### TO-DOs:
 - Add functions to help getting data into Odoo, right now the functions are mostly to get data out;
-- Add tests. However, I do run tests from higher-level code that depend on this package so I have
-  indirect ways to test this codebase. Not ideal, but enough for now.
 
 
 ### Other things to know about this module:
+- It ships will a good suite of tests that run against an OCA runbot instance;
+
 - Asyncio is a python3 thing, so no python2 support;
 
 - Type hints are used everywhere;
@@ -105,12 +103,6 @@ Also, if you want fast code you quickly start missing an async interface. So her
   and it never expires. There is really no 'login' step required to access the Odoo RPC API if you
   know the uid from the beginning;
   
-- Odoo can be quite slow (although v13 improves things a lot!). Sorry, nothing we can do here, 
-  whatever optimization may exist in this package may reduce the execution time by a fraction of
-  a millisecond. This is nothing compared with the latency of network data transmission and RPC calls.
-  If you do find opportunities for optimization, let me know. Just don't blame this package first, it
-  is unlikely to be the culprit if your code is running slowly.
-
 
 ### Usage
 
@@ -120,6 +112,9 @@ to use an async module you already have that sorted out yourself or through a fr
 All examples below could also be called using the synchronous OdooRPC object, but without the
 'await' syntax. Synchronous functions do not start with 'aio_', that is a marker of the async
 functions only.
+
+I recommend that you check the tests folder for many more examples. Also, the codebase is very very short,
+do refer to it as well.
 
 ```
 from aio_odoorpc_base import aio_login, aio_execute_kw, build_odoo_jsonrpc_endpoint_url
@@ -138,37 +133,4 @@ async with httpx.AsyncHttpClient(url=url) as client:
                                 domain_or_ids=[[]],
                                 kwargs = {'fields': ['} 
 
-
-# if server is listening on default http/https ports, there is no need to specify the port
-# in the url. Otherwise, url could be "https://acme.odoo.com:8069" to specify the port number.
-# Remember, the method __init__ is never a coroutine, so no await here. But we make no blocking
-# calls on the __init__ method.
-
-client = AsyncOdooRPC(url = "https://acme.odoo.com",
-                      database = "acme",
-                      username_or_uid = "joe@acme.com",
-                      password = "my super-difficult-to-guess password")
-
-# login is only required because the client was instantiated with a username rather than a
-# user id (uid).
-await client.login()
-
-# or we can instantiate the class using a helper. With the helper, there is no need to 
-# call the login() method, it takes care of it for you if necessary.
-client = await AsyncOdooRPC.from_cfg(host = "acme.odoo.com",
-                                     database = "acme",
-                                     username = "joe@acme.com",
-                                     password = "my super-difficult-to-guess password",
-                                     port = 8069,
-                                     ssl = True,
-                                     ssl_verify = True)
-```
-
-## Ok, so now that you have a class instance, let's use it! 
-
-```
-    data = await client.search_read(model_name='sale.order',
-                                    domain=[['date_confirmed', '>=', '2019-01-01]],
-                                    fields=['number, date_confirmed, order_total'],
-                                    limit=500)
 ```
