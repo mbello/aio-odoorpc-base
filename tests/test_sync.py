@@ -69,6 +69,12 @@ def test_urls():
     url = odoo_base_url2jsonrpc_endpoint(odoo_base_url='http://odoo.com////', custom_odoo_jsonrpc_suffix='///jsonrpc')
     assert url == 'http://odoo.com/jsonrpc'
 
+    url = odoo_base_url2jsonrpc_endpoint(odoo_base_url='http://odoo.com/jsonrpc')
+    assert url == 'http://odoo.com/jsonrpc'
+
+    url = odoo_base_url2jsonrpc_endpoint(odoo_base_url='http://odoo.com/jsonrpc/')
+    assert url == 'http://odoo.com/jsonrpc'
+
 
 def sync_login_search_read(url: str, db: str, user: str, pwd: str, session: T_HttpClient):
     
