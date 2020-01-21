@@ -1,9 +1,10 @@
 [tool.poetry]
 name = "aio-odoorpc-base"
 description = "Fast, simple Odoo RPC package with sync and async functions to pilot Odoo's jsonrpc API. Check aio-odoorpc for a higher-level, friendlier interface."
-version = "2.0.1"
+version = "2.0.2"
 license = "CC0-1.0"
 authors = ["mbello <mbello@users.noreply.github.com>"]
+readme = "README.md"
 repository = "https://github.com/mbello/aio-odoorpc-base"
 homepage = "https://github.com/mbello/aio-odoorpc-base"
 keywords = ['odoo', 'odoorpc', 'asyncio', 'Odoo RPC API', 'Odoo jsonrpc', 'Odoo asyncio', 'Odoo async', 'Odoo asynchronous']
