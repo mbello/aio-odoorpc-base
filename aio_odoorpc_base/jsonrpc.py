@@ -75,13 +75,13 @@ def execute_kw(http_client: T_HttpClient,
                password: str,
                model_name: str,
                method: str,
-               domain_or_ids: list,
-               kwargs: Optional[dict] = None) -> Any:
+               method_arg: list,
+               method_kwargs: Optional[dict] = None) -> Any:
 
     args = [database, uid, password, model_name,
-            method, [domain_or_ids], kwargs]
+            method, [method_arg], method_kwargs]
 
-    if kwargs is None:
+    if method_kwargs is None:
         del args[-1]
 
     resp, req_id = jsonrpc(http_client, url,

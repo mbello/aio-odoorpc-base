@@ -130,7 +130,7 @@ async with httpx.AsyncHttpClient(url=url) as client:
                                 password='demo',
                                 model_name='sale.order',
                                 method='search_read',
-                                domain_or_ids=[[]],
-                                kwargs = {'fields': ['} 
+                                method_arg=[[]],
+                                method_kwargs = {'fields': ['} 
 
 ```
