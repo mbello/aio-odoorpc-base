@@ -42,7 +42,8 @@ def build_odoo_base_url(*,
     return url
 
 
-def odoo_base_url2jsonrpc_endpoint(odoo_base_url: str = '', custom_odoo_jsonrpc_suffix: Optional[str] = None) -> str:
+def odoo_base_url2jsonrpc_endpoint(odoo_base_url: str = '',
+                                   custom_odoo_jsonrpc_suffix: Optional[str] = None) -> str:
 
     suffix = 'jsonrpc' if custom_odoo_jsonrpc_suffix is None else custom_odoo_jsonrpc_suffix
 
