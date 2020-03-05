@@ -28,7 +28,6 @@ async def aio_jsonrpc(http_client: T_AsyncHttpClient,
         return await http_client(json_payload)
     else:
         assert isinstance(json_payload, dict)
-        print(json_payload)
         resp = await http_client.post(url, json=json_payload)
         return resp, json_payload['id']
 

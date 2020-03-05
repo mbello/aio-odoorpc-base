@@ -27,7 +27,6 @@ def jsonrpc(http_client: T_HttpClient,
         return http_client(json_payload)
     else:
         assert isinstance(json_payload, dict)
-        print(json_payload)
         resp = http_client.post(url, json=json_payload)
         return resp, json_payload['id']
 
