@@ -15,17 +15,15 @@ This is a core/base package with lower-level functions used by other higher-leve
 All functions offered by this package are available in both async and sync versions. The sync
 version is automatically generated from the async one, so they are always in sync! ;)
 
-While lacking some sort of facilitating helper class, the functions provided by this package
-are quite usable and may be a very good foundation for your own Odoo-interfacing code.
+Here you will find methods to access Odoo's external API, mirroring the dispatching
+methods available on Odoo's jsonrpc endpoint (i.e. 'login', 'execute_kw', etc).
 
-Do not at all expect to find functionality similar to erpeek or odoorpc, this package only offers
-facilitating functions that mirror the dispatching methods available on Odoo's jsonrpc endpoint
-(i.e. 'login', 'execute_kw', etc).
-
-You will not find facilitating functions for methods such as 'search', 'read', 'search_read' which
-are actually executed through the 'execute_kw' dispatcher. If you want those higher-level functions
-you should probably look into 'aio-odoorpc'.
-
+If you know how Odoo's external API work, this package may very well suit all your needs. Otherwise,
+if you prefer it a little higher level, you should check 'aio-odoorpc' which uses this package to
+implement facilitating methods to call Odoo's model methods like 'search', search_read', 'read',
+'search_count', 'write', 'create', etc. Ultimately, those methods are all implemented through 
+'execute_kw' API calls which this package provides.
+  
 
 ### No dependencies:
 No dependency is not a promise, just a preference. It may change in the future, but only if for very
@@ -59,12 +57,27 @@ or use a synchronous http client library if you are going to use the sync functi
 - sync and async: 'httpx'
 
 ### Motivation:
-As I gained experience producing code to interface with Odoo's RPC API, I felt that it was better to control myself
-all the RPC invocations and hence I started to use only the lower level 'odoorpc' methods
-(execute_kw, read, search, search_read).
-The package 'odoorpc' is a great solution to pilot Odoo, it offers plenty of functionality, but it does
-get in the way when one needs to go fast, specially when you are making thousands of remote RPC calls.
-Also, if you want fast code you quickly start missing an async interface. So here it is, enjoy!
+The package 'odoorpc' is the most used and better maintained package to let you easily consume Odoo's
+jsonrpc API. It has lots of functionality, good documentation, a large user base and was developed
+by people that are very experienced with Odoo in general and big contributors to the Odoo Community.  
+In other words, if you are taking your first steps and do not need an async interface now, start with
+odoorpc.
+
+However, for my needs, once I was developing Odoo integrations that needed to make hundreds of calls
+to the Odoo API to complete a single job, I began to sorely miss an async interface as well as more
+control over the HTTP client used (I wished for HTTP2 support and connection reuse).
+
+Also, as I understood Odoo's external API, it started to sound like 'odoorpc' was too big for a task
+too simple. For instance, most of the time (like 99,99% of the time), you will be calling to a single
+REST method called 'execute_kw'. It is the same call over and over just changing the payload which 
+itself is a simple json. 
+
+So I decided to develop a new package myself, made it async-first and tryed to keep it as simple as
+possible. Also, I decided to split it in two, a very simple base package (this one) with only methods
+that mirror those in Odoo's external API and another one 'aio-odoorpc' that adds another layer to
+implement Odoo's model methods like 'search', 'search_read', 'read', etc. as well as an object model
+to instantiate a class once and then make simple method invocation with few parameters to access 
+what you need.  
 
 
 ### TO-DOs:
@@ -120,17 +133,17 @@ do refer to it as well.
 from aio_odoorpc_base import aio_login, aio_execute_kw, build_odoo_jsonrpc_endpoint_url
 import httpx
 
-url = build_odoo_jsonrpc_endpoint_url(host='acme.odoo.com')
+url = 'https://odoo.acme.com/jsonrpc'
 
 async with httpx.AsyncHttpClient(url=url) as client:
-    uid = await aio_login(client, database='acme', username='demo', password='demo')
-    data = await aio_execute_kw(client,
+    uid = await aio_login(http_client=client, database='acme', username='demo', password='demo')
+    data = await aio_execute_kw(http_client=client,
                                 database='acme',
                                 uid=uid,
                                 password='demo',
                                 model_name='sale.order',
                                 method='search_read',
-                                method_arg=[[]],
-                                method_kwargs = {'fields': ['} 
+                                method_arg=[],
+                                method_kwargs = {'fields': ['partner_id', 'date_order', 'amount_total']}
 
 ```
