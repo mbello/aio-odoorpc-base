@@ -66,7 +66,8 @@ def rpc_result(http_client: T_HttpClient, url: str = '', *,
                service: str, method: str,
                args: Optional[Sequence] = None,
                kwargs: Optional[Mapping] = None,
-               ensure_instance_of: Optional[type] = None) -> Union[bool, bytes, int, str, List[str]]:
+               ensure_instance_of: Optional[type] = None) -> Union[bool, bytes, dict, int, str,
+                                                                   List[dict], List[int], List[str]]:
     resp, req_id = jsonrpc(http_client, url, service=service,
                            method=method, args=args, kwargs=kwargs)
     data = check_jsonrpc_response(

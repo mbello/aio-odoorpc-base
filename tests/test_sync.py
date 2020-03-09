@@ -80,31 +80,31 @@ def test_urls():
 
 def sync_login_search_read(url: str, db: str, user: str, pwd: str, session: T_HttpClient):
     
-    uid = login(session, url, database=db, username=user, password=pwd)
+    uid = login(session, url, db=db, login=user, password=pwd)
     limit = 10
     fields = ['partner_id', 'date_order', 'amount_total']
     exkw_kwargs = {'http_client': session,
                    'url': url,
-                   'database': db,
+                   'db': db,
                    'uid': uid,
                    'password': pwd,
-                   'model_name': 'sale.order',
+                   'obj': 'sale.order',
                    'method': 'search_read',
-                   'method_arg': [],
-                   'method_kwargs': {'fields': fields}}
+                   'args': [],
+                   'kw': {'fields': fields}}
     
     data1 = execute_kw(**exkw_kwargs)
     
     exkw_kwargs['method'] = 'search_count'
-    exkw_kwargs['method_kwargs'] = None
+    exkw_kwargs['kw'] = None
     count = execute_kw(**exkw_kwargs)
     
     exkw_kwargs['method'] = 'search'
     ids = execute_kw(**exkw_kwargs)
     
     exkw_kwargs['method'] = 'read'
-    exkw_kwargs['method_arg'] = ids
-    exkw_kwargs['method_kwargs'] = {'fields': fields}
+    exkw_kwargs['args'] = ids
+    exkw_kwargs['kw'] = {'fields': fields}
     data2 = execute_kw(**exkw_kwargs)
     
     assert len(data1) == count

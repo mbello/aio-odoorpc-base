@@ -34,18 +34,18 @@ async def async_login_search_read(url: str, db: str, user: str, pwd: str, sessio
     fields = ['partner_id', 'date_order', 'amount_total']
     exkw_kwargs = {'http_client': session,
                    'url': url,
-                   'database': db,
+                   'db': db,
                    'uid': uid,
                    'password': pwd,
-                   'model_name': 'sale.order',
+                   'obj': 'sale.order',
                    'method': 'search_read',
-                   'method_arg': [],
-                   'method_kwargs': {'fields': fields}}
+                   'args': [],
+                   'kw': {'fields': fields}}
     
     data1 = asyncio.create_task(execute_kw(**exkw_kwargs))
     
     exkw_kwargs['method'] = 'search_count'
-    exkw_kwargs['method_kwargs'] = None
+    exkw_kwargs['kw'] = None
     count = asyncio.create_task(execute_kw(**exkw_kwargs))
     
     exkw_kwargs['method'] = 'search'
@@ -53,8 +53,8 @@ async def async_login_search_read(url: str, db: str, user: str, pwd: str, sessio
 
     ids = await ids
     exkw_kwargs['method'] = 'read'
-    exkw_kwargs['method_arg'] = ids
-    exkw_kwargs['method_kwargs'] = {'fields': fields}
+    exkw_kwargs['args'] = ids
+    exkw_kwargs['kw'] = {'fields': fields}
     data2 = asyncio.create_task(execute_kw(**exkw_kwargs))
     
     count = await count

@@ -1,24 +1,16 @@
-from typing import Any, Optional
+from typing import List, Optional, Union
 from aio_odoorpc_base.protocols import T_HttpClient
-from aio_odoorpc_base. import jsonrpc, check_jsonrpc_response
+from aio_odoorpc_base.sync.rpc import rpc_result
 
 
 def execute_kw(http_client: T_HttpClient, url: str = '', *,
-               database: str,
-               uid: int,
-               password: str,
-               model_name: str,
-               method: str,
-               method_arg: list,
-               method_kwargs: Optional[dict] = None) -> Any:
+               db: str, uid: int, password: str,
+               obj: str, method: str,
+               args: list, kw: Optional[dict] = None) -> Union[bool, dict, int, List[dict], List[int]]:
 
-    args = [database, uid, password, model_name,
-            method, [method_arg], method_kwargs]
+    args = [db, uid, password, obj, method, [args]]
 
-    if method_kwargs is None:
-        del args[-1]
+    if kw:
+        args.append(kw)
 
-    resp, req_id = jsonrpc(
-        http_client, url, service='object', method='execute_kw', args=args)
-    data = check_jsonrpc_response(resp, req_id)
-    return data['result']
+    return rpc_result(http_client, url, service='object', method='execute_kw', args=args)

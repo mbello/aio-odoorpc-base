@@ -1,47 +1,84 @@
-## Base functions to pilot Odoo's jsonrpc API (aio-odoorpc-base)
+### Base functions to pilot Odoo's jsonrpc API (aio-odoorpc-base)
 
----
-#### Note:
+#### Description:
+This python package implements a **complete** set of methods to access  
+Odoo's external API (using jsonrpc rather than xmlrpc).
 
-A higher-level, friendlier interface is provided by aio-odoorpc, make sure to check that out
-as well.
+It offers an almost-exact mirror of Odoo's externa APÌ, even parameter names are the same.
+It is 'almost-exact' because 'execute' is skipped in favor of 'execute_kw' only and the 
+API methods from the 'db' service: 'list', 'drop', 'dump', 'rename', 'restore' are here 
+implemented with names 'list_databases', 'drop_database', 'dump_database', 'rename_database'
+and 'restore_database' respectively.  
 
----
+The 'documentation' offered by this package is mostly in the form of proper type 
+annotations so that you have a better idea of what kind of data each API method expects. 
+Other than that, developers are recommended to go study Odoo's external API by reading the
+source code at [https://github.com/odoo/odoo/tree/master/odoo/service]. The three API services
+'object', 'common' and 'db' are implemented there in files model.py, common.py and db.py 
+respectively. On each of these python files, a 'dispatch' method is implemented for the service
+in question. The methods available on the external service api are usually those prefixed with 
+'exp_' in the method name, with the exception of the 'object' service which only exposes 
+'execute' and 'execute_kw'.
 
-### Description:
-This is a core/base package with lower-level functions used by other higher-level
-'aio-odoorpc-*' packages that are used in production in at least one company.
+All functions offered by this package are available in both async and sync versions.
 
-All functions offered by this package are available in both async and sync versions. The sync
-version is automatically generated from the async one, so they are always in sync! ;)
+Odoo's API methods implemented:
+- about
+- authenticate
+- change_admin_password
+- create_database
+- db_exist
+- drop_database
+- dump_database
+- duplicate_database
+- execute_kw
+- list_countries
+- list_databases
+- list_lang
+- login
+- migrate_databases
+- rename_database
+- restore_database
+- server_version
+- version
 
-Here you will find methods to access Odoo's external API, mirroring the dispatching
-methods available on Odoo's jsonrpc endpoint (i.e. 'login', 'execute_kw', etc).
+All methods take as first 2 arguments 2 parameters:
+- **http_client**: a callable or an instance of a compatible http_client (it must implement a 'post'
+  method that accepts a 'url' and a 'json' parameter. Packages 'requests', 'httpx' and 'aiohttp' are 
+  compatible).
+  If http_client is a callable, it will be called with a dict as the post payload and must return a 
+  response object with a '.json()' method that may be synchronous or asynchronous (when using the async
+  functions). It must return a dict or dict-like object representing the reponse.
 
-If you know how Odoo's external API work, this package may very well suit all your needs. Otherwise,
-if you prefer it a little higher level, you should check 'aio-odoorpc' which uses this package to
-implement facilitating methods to call Odoo's model methods like 'search', search_read', 'read',
-'search_count', 'write', 'create', etc. Ultimately, those methods are all implemented through 
-'execute_kw' API calls which this package provides.
-  
+- **url**: the complete URL of your Odoo's jsonrpc endpoint. Usually something like
+  'https://odoo.acme.com/jsonrpc' or 'https://odoo.acme.com:8443/jsonrpc'. 
+
+Remaining parameters on each method are those expected by Odoo's external API, with identical names
+as you will find on Odoo's source code. The method 'jsonrpc' is the low-level method that actually 
+does all the HTTP calls for all implemented methods.
+
+By default, when you issue 'from aio_odoorpc_base import ...' you will be importing the async methods.
+If you want the sync methods you must import from 'aio_odoorpc_base.sync'. You may also use 
+'aio_odoorpc_base.aio' if you prefer to be explicit on whether you are importing sync or async code.
+
+
+### aio-odoorpc: a higher-level API
+
+In practice, you may notice that 99% of the time you will be calling the 'execute_kw' method
+which is what allows you to deal with Odoo's models, reading and writing actual business data 
+via the model methods 'search', 'read', 'search_read', 'search_count', 'write', 'create', etc.
+While this package only offers you a bare 'execute_kw' method and a helper 'build_execute_kw_kwargs', 
+the higher-level package 'aio-odoorpc' expands over this one adding higher-level objects and methods
+(such as 'search', 'read', 'search_read', 'search_count', 'write', 'create', etc) to consume those 
+model methods through calls to 'execute_kw' external API method. 
+
 
 ### No dependencies:
 No dependency is not a promise, just a preference. It may change in the future, but only if for very
-good reason.
+good reason. Here, are free to use whatever HTTP Client library you want.
 
-This also means that you are free to use whatever HTTP Client library you like. This package only
-requires that:
-1. The http_client must support a '.post(url, json=a_dict)' method. All headers, etc must be
-   managed by you. Alternatively, a callable can be passed on in place of the http client, in which
-   case it will be called with a single argument: the json payload;
-2. The 'post' method mentioned above must return a response object that must have a '.json()'
-   method. This method may be synchronous or asynchronous (when using the async functions).
-   It must return a dict or dict-like object. This interface is supported by packages such
-   as 'requests', 'httpx' and 'aiohttp'. If your favorite library does not offer such interface, it
-   is easy to wrap the object yourself in order to provide it;
-
-I am willing to make modifications in the code in order to support other http client solutions, just
-get in touch (use the project's github repository for that).
+I am willing to make modifications in the code in order to support other http client solutions, 
+just get in touch (use the project's github repository for that).
 
 While it would be easier if this package shipped with a specific http client dependency, it should be
 noted that having the possibility to reuse HTTP sessions is a great opportunity to improve the 
@@ -58,18 +95,18 @@ or use a synchronous http client library if you are going to use the sync functi
 
 ### Motivation:
 The package 'odoorpc' is the most used and better maintained package to let you easily consume Odoo's
-jsonrpc API. It has lots of functionality, good documentation, a large user base and was developed
+external API. It has lots of functionality, good documentation, a large user base and was developed
 by people that are very experienced with Odoo in general and big contributors to the Odoo Community.  
 In other words, if you are taking your first steps and do not need an async interface now, start with
 odoorpc.
 
 However, for my needs, once I was developing Odoo integrations that needed to make hundreds of calls
 to the Odoo API to complete a single job, I began to sorely miss an async interface as well as more
-control over the HTTP client used (I wished for HTTP2 support and connection reuse).
+control over the HTTP client used (I wished for HTTP2 support and connection polling/reuse).
 
 Also, as I understood Odoo's external API, it started to sound like 'odoorpc' was too big for a task
 too simple. For instance, most of the time (like 99,99% of the time), you will be calling to a single
-REST method called 'execute_kw'. It is the same call over and over just changing the payload which 
+jsonrpc method called 'execute_kw'. It is the same call over and over just changing the payload which 
 itself is a simple json. 
 
 So I decided to develop a new package myself, made it async-first and tryed to keep it as simple as
@@ -78,10 +115,6 @@ that mirror those in Odoo's external API and another one 'aio-odoorpc' that adds
 implement Odoo's model methods like 'search', 'search_read', 'read', etc. as well as an object model
 to instantiate a class once and then make simple method invocation with few parameters to access 
 what you need.  
-
-
-### TO-DOs:
-- Add functions to help getting data into Odoo, right now the functions are mostly to get data out;
 
 
 ### Other things to know about this module:
@@ -104,17 +137,17 @@ what you need.
   to take patches but I will not myself spend time looking into these eventual bugs;
 
 
-### Things to know about Odoo RPC API:
+### Things to know about Odoo's external API:
 
 - The 'login' call is really only a lookup of the user_id (an int) of a user given a
-  database, username and password. If you are using this RPC client over and over in your code,
-  maybe even calling from a stateless cloud service, you should consider finding out the user id (uid)
-  of the user and pass the uid instead of the username to the constructor of AsyncOdooRPC. This way, 
-  you do not need to call the login() RPC method to retrieve the uid, saving a RPC call;
+  database name, user/login name and password. If you are using this RPC client over and over in your 
+  code, maybe even calling from a stateless cloud service, you should consider finding out the 
+  user id (uid) of the user and pass the uid instead of the username to the constructor of AsyncOdooRPC.
+  This way, you do not need to call the login() RPC method to retrieve the uid, saving a RPC call;
 
 - The uid mentioned above is not a session-like id. It is really only the database id of the user
-  and it never expires. There is really no 'login' step required to access the Odoo RPC API if you
-  know the uid from the beginning;
+  and it never expires. There is really no 'login' or 'session initiation' step required to access 
+  Odoo's external API if you know the uid from the beginning;
   
 
 ### Usage
@@ -123,27 +156,29 @@ Ok, so let's start with some examples. I will omit the event_loop logic, I assum
 to use an async module you already have that sorted out yourself or through a framework like FastAPI.
 
 All examples below could also be called using the synchronous OdooRPC object, but without the
-'await' syntax. Synchronous functions do not start with 'aio_', that is a marker of the async
-functions only.
+'await' syntax.
 
 I recommend that you check the tests folder for many more examples. Also, the codebase is very very short,
 do refer to it as well.
 
 ```
-from aio_odoorpc_base import aio_login, aio_execute_kw, build_odoo_jsonrpc_endpoint_url
+from aio_odoorpc_base.aio import login, execute_kw 
+from aio_odoorpc_base.helpers import build_execute_kw_kwargs
 import httpx
 
 url = 'https://odoo.acme.com/jsonrpc'
 
-async with httpx.AsyncHttpClient(url=url) as client:
-    uid = await aio_login(http_client=client, database='acme', username='demo', password='demo')
-    data = await aio_execute_kw(http_client=client,
-                                database='acme',
-                                uid=uid,
-                                password='demo',
-                                model_name='sale.order',
-                                method='search_read',
-                                method_arg=[],
-                                method_kwargs = {'fields': ['partner_id', 'date_order', 'amount_total']}
-
+async with httpx.AsyncClient() as client:
+    uid = await login(http_client=client, url=url, db='acme', login='demo', password='demo')
+    kwargs = build_execute_kw_kwargs(fields=['partner_id', 'date_order', 'amount_total'],
+                                     limit=1000, offset=0, order='amount_total DESC')
+    data = await execute_kw(http_client=client,
+                            url=url,
+                            db='acme',
+                            uid=uid,
+                            password='demo',
+                            obj='sale.order',
+                            method='search_read',
+                            args=[],
+                            kw=kwargs)
 ```

@@ -67,7 +67,8 @@ async def rpc_result(http_client: T_AsyncHttpClient, url: str = '', *,
                      service: str, method: str,
                      args: Optional[Sequence] = None,
                      kwargs: Optional[Mapping] = None,
-                     ensure_instance_of: Optional[type] = None) -> Union[bool, bytes, int, str, List[str]]:
+                     ensure_instance_of: Optional[type] = None) -> Union[bool, bytes, dict, int, str,
+                                                                         List[dict], List[int], List[str]]:
     resp, req_id = await jsonrpc(http_client, url, service=service, method=method, args=args, kwargs=kwargs)
     data = await check_jsonrpc_response(resp, req_id, ensure_instance_of=ensure_instance_of)
     return data['result']
