@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "aio-odoorpc-base"
 description = "Fast, simple Odoo RPC package with sync and async functions to pilot Odoo's jsonrpc API. Check aio-odoorpc for a higher-level, friendlier interface."
-version = "3.0.0"
+version = "3.0.1"
 license = "CC0-1.0"
 authors = ["mbello <mbello@users.noreply.github.com>"]
 readme = "README.md"
