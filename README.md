@@ -68,7 +68,7 @@ If you want the sync methods you must import from 'aio_odoorpc_base.sync'. You m
 In practice, you may notice that 99% of the time you will be calling the 'execute_kw' method
 which is what allows you to deal with Odoo's models, reading and writing actual business data 
 via the model methods 'search', 'read', 'search_read', 'search_count', 'write', 'create', etc.
-While this package only offers you a bare 'execute_kw' method and a helper 'build_execute_kw_kwargs', 
+While this package only offers you a bare 'execute_kw' method and a helper 'execute_kwargs', 
 the higher-level package 'aio-odoorpc' expands over this one adding higher-level objects and methods
 (such as 'search', 'read', 'search_read', 'search_count', 'write', 'create', etc) to consume those 
 model methods through calls to 'execute_kw' external API method. 
@@ -164,15 +164,15 @@ do refer to it as well.
 
 ```
 from aio_odoorpc_base.aio import login, execute_kw 
-from aio_odoorpc_base.helpers import build_execute_kw_kwargs
+from aio_odoorpc_base.helpers import execute_kwargs
 import httpx
 
 url = 'https://odoo.acme.com/jsonrpc'
 
 async with httpx.AsyncClient() as client:
     uid = await login(http_client=client, url=url, db='acme', login='demo', password='demo')
-    kwargs = build_execute_kw_kwargs(fields=['partner_id', 'date_order', 'amount_total'],
-                                     limit=1000, offset=0, order='amount_total DESC')
+    kwargs = execute_kwargs(fields=['partner_id', 'date_order', 'amount_total'],
+                            limit=1000, offset=0, order='amount_total DESC')
     data = await execute_kw(http_client=client,
                             url=url,
                             db='acme',

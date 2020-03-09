@@ -1,11 +1,13 @@
-from typing import List, Optional, Union
+from typing import List, Mapping, Optional, Union
 
 
-def build_execute_kw_kwargs(*,
-                            fields: Optional[List[str]] = None,
-                            limit: Optional[int] = None,
-                            offset: Optional[int] = None,
-                            order: Optional[str] = None) -> Union[dict, None]:
+def execute_kwargs(*,
+                   fields: Optional[List[str]] = None,
+                   limit: Optional[int] = None,
+                   offset: Optional[int] = None,
+                   order: Optional[str] = None,
+                   count: Optional[bool] = None,
+                   context: Optional[Mapping] = None) -> Union[dict, None]:
     kwargs = dict()
     if offset is not None:
         kwargs['offset'] = offset
@@ -15,6 +17,10 @@ def build_execute_kw_kwargs(*,
         kwargs['order'] = order
     if fields is not None:
         kwargs['fields'] = fields
+    if count is not None:
+        kwargs['count'] = count
+    if context is not None:
+        kwargs['context'] = context
     return kwargs if kwargs else None
 
 

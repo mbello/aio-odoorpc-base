@@ -1,6 +1,6 @@
 from aio_odoorpc_base.helpers import odoo_base_url2jsonrpc_endpoint, \
                                      build_odoo_jsonrpc_endpoint_url, \
-                                     build_execute_kw_kwargs
+                                     execute_kwargs
 
 from aio_odoorpc_base.aio import \
     about, \

@@ -1,5 +1,5 @@
-from typing import List, Mapping, Optional, Sequence, Tuple, Union
 import random
+from typing import List, Mapping, Optional, Sequence, Tuple, Union
 from aio_odoorpc_base.protocols import T_HttpClient, T_Response
 
 
