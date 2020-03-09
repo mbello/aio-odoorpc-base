@@ -1,5 +1,7 @@
 import pytest
-from aio_odoorpc_base import login, execute_kw, build_odoo_jsonrpc_endpoint_url, odoo_base_url2jsonrpc_endpoint
+from aio_odoorpc_base.sync.common import login
+from aio_odoorpc_base.sync.object import execute_kw
+from aio_odoorpc_base.helpers import build_odoo_jsonrpc_endpoint_url, odoo_base_url2jsonrpc_endpoint
 from aio_odoorpc_base.protocols import T_HttpClient
 import httpx
 import requests

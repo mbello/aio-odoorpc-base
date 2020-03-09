@@ -3,23 +3,10 @@
 from typing import List, Tuple
 import os
 
-files = [('aio_odoorpc_base/aio_jsonrpc.py', 'aio_odoorpc_base/jsonrpc.py')]
 
-delete_lines = ['from inspect import isawaitable',
-                'if isawaitable(data):',
-                'data = await data']
-
-comment_lines = []
-
-repl = [('T_AsyncResponse', 'T_Response'),
-        ('T_AsyncHttpClient', 'T_HttpClient'),
-        ('async def', 'def'),
-        ('await ', ''),
-        ('aio_', ''),
-        ('odoorpc_base', 'aio_odoorpc_base')]
-
-
-def convert_async_to_sync(filename_async: str, filename_sync: str, repl: List[Tuple], delete_lines: List[str]):
+def convert_async_to_sync(filename_async: str, filename_sync: str,
+                          repl: List[Tuple[str, str]], delete_lines: List[str]):
+    
     dt_mod_async = os.path.getmtime(filename_async)
     dt_mod_script = os.path.getmtime(__file__)
     try:
@@ -30,11 +17,11 @@ def convert_async_to_sync(filename_async: str, filename_sync: str, repl: List[Tu
     if dt_mod_async < dt_mod_sync and dt_mod_script < dt_mod_sync:
         return
     
-    lines = []
+    lines: list = []
     with open(filename_async, 'r') as file:
         for line in file:
-            line_s = line.strip()
-            keep = True
+            line_s: str = line.strip()
+            keep: bool = True
             for t in delete_lines:
                 if t == line_s:
                     print(f'Deleted line: {t}')
@@ -43,9 +30,9 @@ def convert_async_to_sync(filename_async: str, filename_sync: str, repl: List[Tu
             if keep:
                 lines.append(line)
     
-    f_async = ''.join(lines)
-    f_sync = f_async
-
+    f_sync: str = ''.join(lines)
+    t: Tuple[str, str]
+    index: int
     for t in repl:
         index = f_sync.find(t[0])
         if index >= 0:
@@ -53,11 +40,31 @@ def convert_async_to_sync(filename_async: str, filename_sync: str, repl: List[Tu
         else:
             print(f'No match for rule: {t[0]} -> {t[1]}')
 
-    with open(filename_sync, 'w') as f:
-        f.write(f_sync)
+    with open(filename_sync, 'w') as file:
+        file.write(f_sync)
 
     os.system(f'autopep8 -i {filename_sync}')
 
 
-for f in files:
-    convert_async_to_sync(f[0], f[1], repl, delete_lines)
+if True:
+    _files: List[Tuple[str, str]] = [('aio_odoorpc_base/aio/__init__.py', 'aio_odoorpc_base/sync/__init__.py'),
+                                     ('aio_odoorpc_base/aio/rpc.py', 'aio_odoorpc_base/sync/rpc.py'),
+                                     ('aio_odoorpc_base/aio/common.py', 'aio_odoorpc_base/sync/common.py'),
+                                     ('aio_odoorpc_base/aio/db.py', 'aio_odoorpc_base/sync/db.py'),
+                                     ('aio_odoorpc_base/aio/object.py', 'aio_odoorpc_base/sync/object.py')]
+
+    _delete_lines: List[str] = ['from inspect import isawaitable',
+                                'if isawaitable(data):',
+                                'data = await data']
+    
+    _comment_lines: List[str] = []
+
+    _repl: List[Tuple[str, str]] = [('from aio_odoorpc_base.aio', 'from aio_odoorpc_base.sync'),
+                                    ('T_AsyncResponse', 'T_Response'),
+                                    ('T_AsyncHttpClient', 'T_HttpClient'),
+                                    ('async def', 'def'),
+                                    ('await ', '')]
+    
+    f: Tuple[str, str]
+    for f in _files:
+        convert_async_to_sync(f[0], f[1], _repl, _delete_lines)

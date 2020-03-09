@@ -1,7 +1,11 @@
-from typing import Optional
+from typing import List, Optional, Union
 
 
-def build_execute_kw_kwargs(*, fields=None, limit=None, offset=None, order=None) -> dict or None:
+def build_execute_kw_kwargs(*,
+                            fields: Optional[List[str]] = None,
+                            limit: Optional[int] = None,
+                            offset: Optional[int] = None,
+                            order: Optional[str] = None) -> Union[dict, None]:
     kwargs = dict()
     if offset is not None:
         kwargs['offset'] = offset

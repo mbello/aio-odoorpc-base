@@ -1,5 +1,6 @@
 import pytest
-from aio_odoorpc_base import aio_login, aio_execute_kw
+from aio_odoorpc_base.aio.common import login
+from aio_odoorpc_base.aio.object import execute_kw
 from aio_odoorpc_base.protocols import T_AsyncHttpClient
 import httpx
 import aiohttp
@@ -28,7 +29,7 @@ async def test_async_aiohttp(url_db_user_pwd: list, aio_benchmark):
 
 
 async def async_login_search_read(url: str, db: str, user: str, pwd: str, session: T_AsyncHttpClient):
-    uid = await aio_login(session, url, database=db, username=user, password=pwd)
+    uid = await login(session, url, db=db, login=user, password=pwd)
     limit = 10
     fields = ['partner_id', 'date_order', 'amount_total']
     exkw_kwargs = {'http_client': session,
@@ -41,20 +42,20 @@ async def async_login_search_read(url: str, db: str, user: str, pwd: str, sessio
                    'method_arg': [],
                    'method_kwargs': {'fields': fields}}
     
-    data1 = asyncio.create_task(aio_execute_kw(**exkw_kwargs))
+    data1 = asyncio.create_task(execute_kw(**exkw_kwargs))
     
     exkw_kwargs['method'] = 'search_count'
     exkw_kwargs['method_kwargs'] = None
-    count = asyncio.create_task(aio_execute_kw(**exkw_kwargs))
+    count = asyncio.create_task(execute_kw(**exkw_kwargs))
     
     exkw_kwargs['method'] = 'search'
-    ids = asyncio.create_task(aio_execute_kw(**exkw_kwargs))
+    ids = asyncio.create_task(execute_kw(**exkw_kwargs))
 
     ids = await ids
     exkw_kwargs['method'] = 'read'
     exkw_kwargs['method_arg'] = ids
     exkw_kwargs['method_kwargs'] = {'fields': fields}
-    data2 = asyncio.create_task(aio_execute_kw(**exkw_kwargs))
+    data2 = asyncio.create_task(execute_kw(**exkw_kwargs))
     
     count = await count
     data1 = await data1
