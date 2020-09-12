@@ -29,16 +29,16 @@ def version(http_client: T_HttpClient, url: str = '') -> str:
 
 
 @overload
-def about(http_client: T_HttpClient, url: str, *, extended: Literal[False]) -> str:
+def about(http_client: T_HttpClient, url: str = '', *, extended: Literal[False]) -> str:
     ...
 
 
 @overload
-def about(http_client: T_HttpClient, url: str, *, extended: Literal[True]) -> Tuple[str, str]:
+def about(http_client: T_HttpClient, url: str = '', *, extended: Literal[True]) -> Tuple[str, str]:
     ...
 
 
-def about(http_client, url='', *, extended):
+def about(http_client: T_HttpClient, url: str = '', *, extended):
     service, method = __SERVICE, 'about'
     args = [extended]
 
