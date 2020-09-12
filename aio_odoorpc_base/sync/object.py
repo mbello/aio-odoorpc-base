@@ -10,7 +10,4 @@ def execute_kw(http_client: T_HttpClient, url: str = '', *,
 
     args = [db, uid, password, obj, method, args]
 
-    if kw:
-        args.append(kw)
-
-    return rpc_result(http_client, url, service='object', method='execute_kw', args=args)
+    return rpc_result(http_client, url, service='object', method='execute_kw', args=args, kwargs=kw)
