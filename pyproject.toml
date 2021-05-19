@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "aio-odoorpc-base"
 description = "Fast, simple Odoo RPC package with sync and async functions to pilot Odoo's jsonrpc API. Check aio-odoorpc for a higher-level, friendlier interface."
-version = "3.0.4"
+version = "3.1.0"
 license = "MIT"
 authors = ["mbello <mbello@users.noreply.github.com>"]
 readme = "README.md"
@@ -9,20 +9,55 @@ repository = "https://github.com/mbello/aio-odoorpc-base"
 homepage = "https://github.com/mbello/aio-odoorpc-base"
 keywords = ['odoo', 'odoorpc', 'asyncio', 'aio-odoorpc']
 
-
 [tool.poetry.dependencies]
-python = ">=3.6"
+python = "^3.8"
 
 [tool.poetry.dev-dependencies]
-pytest = ">=5.2"
-httpx = ">=0.12.0"
-requests = ">=2.22.0"
-aiohttp = ">=3.6.2"
-beautifulsoup4 = ">=4.8.2"
-pytest-asyncio = ">=0.10.0"
-pytest-benchmark = ">=3.2.3"
-pytest-xdist = ">=1.31.0"
+httpx = {extras = ["http2"], version = "*"}
+requests = "*"
+aiohttp = "*"
+beautifulsoup4 = "*"
+odoo-find-runbot-instance = "*"
+pytest-asyncio = "*"
+flake8 = "*"
+black = "*"
+coverage = {extras = ["toml"], version = "*"}
+pytest = "*"
+pytest-cov = "*"
+toml = "*"
+flake8-bugbear = "*"
+flake8-comprehensions = "*"
+nox = "*"
+safety = "^1.10.3"
+flake8-bandit = "^2.1.2"
+nox-poetry = "^0.8.5"
+invoke = "^1.5.0"
+
 
 [build-system]
 requires = ["poetry>=1.0"]
 build-backend = "poetry.masonry.api"
+
+[tool.pytest.ini_options]
+markers = [
+     "auto: marks tests that can be run against a random Odoo instance on Odoo's runbot servers. Basically, any test that do not require the master password to be known.",
+     "slow: marks tests that run too slow."]
+
+[tool.coverage]
+paths = {source = ["aio_odoorpc_base", "*/site-packages"]}
+run = {branch = true, source = ["aio_odoorpc_base"]}
+report = {show_missing = true, fail_under = 90}
+
+[tool.black]
+line-length = 92
+target-version = ["py38"]
+
+[tool.flake8]
+max-line-length = 92
+select = "C,E,F,W,B,B9,C4,S"
+max-complexity = 12
+extend-ignore = "E203, E501, B011"
+per-file-ignores = "tests/*:S101"
+
+[tool.pyenv]
+python-version = ["3.6", "3.7", "3.8", "3.9", "pypy3.7"]

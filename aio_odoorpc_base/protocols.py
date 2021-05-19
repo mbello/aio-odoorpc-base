@@ -21,13 +21,13 @@ if sys.version_info >= (3, 8, 0):
 
 
     class ProtoHttpClient(Protocol):
-        def post(self, json: Mapping) -> ProtoResponse:
+        def post(self, url: str, *, json: Mapping) -> ProtoResponse:
             ...
 
     T_AsyncResponse = Union[ProtoResponse, ProtoAsyncResponse]
-    T_AsyncHttpClient = Union[Callable[[Mapping], T_AsyncResponse], ProtoAsyncHttpClient]
+    T_AsyncHttpClient = Union[Callable[[str, Mapping], T_AsyncResponse], ProtoAsyncHttpClient]
     T_Response = ProtoResponse
-    T_HttpClient = Union[Callable[[Mapping], ProtoResponse], ProtoHttpClient]
+    T_HttpClient = Union[Callable[[str, Mapping], ProtoResponse], ProtoHttpClient]
 else:
     from typing import Any
     

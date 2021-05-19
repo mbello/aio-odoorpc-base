@@ -1,81 +1,79 @@
 import pytest
-import asyncio
-from aio_odoorpc_base.helpers import odoo_base_url2jsonrpc_endpoint
-from bs4 import BeautifulSoup
+from typing import Any, Callable, Tuple
+from aio_odoorpc_base.sync.common import login
+from aio_odoorpc_base.protocols import T_HttpClient
 import httpx
-import requests
-import aiohttp
 
 
-@pytest.fixture(scope='package')
-def url_db_user_pwd():
+@pytest.fixture(scope='session')
+def runbot_url_db_user_pwd(runbot_url_db_user_pwd) -> Tuple[str, str, str, str]:
+    base_url, url_jsonrpc, db, username, password = runbot_url_db_user_pwd
+    return url_jsonrpc, db, username, password
+
+
+@pytest.fixture(scope='session')
+def known_master_pwd_url_masterpwd(runbot_url_db_user_pwd) -> Tuple[str, str]:
+    # Add manually the info for an Odoo instance with known master password.
+    # Usually the OCA Runbot runs its instances with no Master Password set.
+    # Must visit https://runbot.odoo-community.org/runbot, find a running instance,
+    # Copy its URL below, and then access /web/database/manager and set the password to
+    # 'admin' or to whatever we return last/second in the tuple below
+    return 'http://3475626-11-0-0b1a90.runbot1.odoo-community.org/jsonrpc', 'admin'
+
+
+@pytest.fixture(scope='session')
+def base_args_common(runbot_url_db_user_pwd) -> Callable[[Any], Tuple[Any, str, str, str, str]]:
+    url, db, username, pwd = runbot_url_db_user_pwd
+    
+    def func(client):
+        return client, url, db, username, pwd
+    return func
+
+
+@pytest.fixture(scope='session')
+def base_args_obj(runbot_url_db_user_pwd) -> Callable[[Any], Tuple[Any, str, str, int, str]]:
+    url, db, username, pwd = runbot_url_db_user_pwd
+    with httpx.Client() as http_client:
+        uid = login(http_client=http_client, url=url, db=db, login=username, password=pwd)
+    
+    def func(client):
+        return client, url, db, uid, pwd
+    return func
+
+
+@pytest.fixture(scope='session')
+def base_args_db_no_masterpwd(runbot_url_db_user_pwd) -> Callable[[Any], Tuple[Any, str]]:
+    url = runbot_url_db_user_pwd[0]
+    
+    def func(client):
+        return client, url
+    return func
+
+
+@pytest.fixture(scope='session')
+def base_args_db_with_masterpwd(known_master_pwd_url_masterpwd) -> Callable[[Any], Tuple[Any, str, str]]:
+    url, master_pwd = known_master_pwd_url_masterpwd
+    
+    def func(client):
+        return client, url, master_pwd
+    return func
+
+
+@pytest.fixture(scope='session')
+def base_args_common(runbot_url_db_user_pwd) -> Callable[[Any], Tuple[Any, str, str, str, str]]:
+    url, db, username, password = runbot_url_db_user_pwd
+    
+    def func(client):
+        return client, url, db, username, password
+    return func
+
+
+@pytest.fixture(scope='session')
+def version() -> str:
+    return '14.0'
+
+
+@pytest.fixture(scope='session')
+def http_client() -> str:
     with httpx.Client() as client:
-        resp = client.get(url='http://runbot.odoo.com/runbot')
-    
-    soup = BeautifulSoup(resp.text, features='html.parser')
-    tags = soup.find_all("td", class_="bg-success-light")
-
-    urls = []
-    
-    for tag in tags:
-        try:
-            url = tag.div.div.find('a', title='Sign in on this build')['href']
-            url_parts = url.split('?db=')
-            if len(url_parts) == 2:
-                json_url = odoo_base_url2jsonrpc_endpoint(url_parts[0])
-                return [json_url, url_parts[1], 'demo', 'demo']
-        except:
-            pass
-
-    return None
-
-
-@pytest.yield_fixture(scope='package')
-def event_loop():
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
-    
-    
-@pytest.yield_fixture(scope='function')
-def aio_benchmark(benchmark):
-    import asyncio
-    import threading
-    
-    class Sync2Async:
-        def __init__(self, coro, *args, **kwargs):
-            self.coro = coro
-            self.args = args
-            self.kwargs = kwargs
-            self.custom_loop = None
-            self.thread = None
-        
-        def start_background_loop(self) -> None:
-            asyncio.set_event_loop(self.custom_loop)
-            self.custom_loop.run_forever()
-        
-        def __call__(self):
-            evloop = None
-            awaitable = self.coro(*self.args, **self.kwargs)
-            # breakpoint()
-            try:
-                evloop = asyncio.get_running_loop()
-            except:
-                pass
-            if evloop is None:
-                return asyncio.run(awaitable)
-            else:
-                if not self.custom_loop or not self.thread or not self.thread.is_alive():
-                    self.custom_loop = asyncio.new_event_loop()
-                    self.thread = threading.Thread(target=self.start_background_loop, daemon=True)
-                    self.thread.start()
-                
-                return asyncio.run_coroutine_threadsafe(awaitable, self.custom_loop).result()
-    
-    def _wrapper(func, *args, **kwargs):
-        if asyncio.iscoroutinefunction(func):
-            benchmark(Sync2Async(func, *args, **kwargs))
-        else:
-            benchmark(func, *args, **kwargs)
-
-    return _wrapper
+        yield client

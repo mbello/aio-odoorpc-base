@@ -2,6 +2,7 @@
 token.pickle
 new_release.sh
 *.json
+*.swp
 poetry.lock
 
 # Packages
@@ -12,6 +13,7 @@ build
 _build
 .cache
 *.so
+__pycache__
 
 # Installer logs
 pip-log.txt
@@ -20,12 +22,15 @@ pip-log.txt
 .benchmarks
 .coverage
 .tox
+.nox
+.cache
 .pytest_cache
 
 .DS_Store
 .idea/*
 .python-version
 .vscode/*
+.github/*
 
 /test.py
 /test_*.*
@@ -33,3 +38,10 @@ pip-log.txt
 .venv
 /releases/*
 
+/setup.cfg
+MANIFEST.in
+/setup.py
+/docs/site/*
+.mypy_cache
+
+pip-wheel-metadata
